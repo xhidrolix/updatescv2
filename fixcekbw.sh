@@ -2,7 +2,11 @@
 
 
 # Menginstall VNSTAT
-sleep 2
+sleep 1
+echo "Please Wait..."
+sleep 4
+echo "installing Update Script VnzVPN V2 Beta Version"
+sleep 4
 apt -y install vnstat > /dev/null 2>&1
 /etc/init.d/vnstat restart
 apt -y install libsqlite3-dev > /dev/null 2>&1
@@ -19,4 +23,9 @@ systemctl enable vnstat
 /etc/init.d/vnstat status
 rm -f /root/vnstat-2.6.tar.gz
 rm -rf /root/vnstat-2.6
+sleep 4
+echo "Installing Update Complete..."
+sleep 2
+echo "Thank you Has Been Use Script By VnzVPN"
+sleep 3
 clear
