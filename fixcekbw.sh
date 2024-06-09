@@ -1,7 +1,6 @@
 #!/bin/bash
 
-
-# Menginstall VNSTAT
+clear
 sleep 1
 echo "Please Wait..."
 sleep 4
