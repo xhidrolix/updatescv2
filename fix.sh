@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Installing VNSTAT
 clear
 sleep 1
 echo "Please Wait..."
@@ -29,3 +30,55 @@ echo "Thank you Has Been Use Script By VnzVPN"
 sleep 3
 rm -rf /root/fixcekbw.sh
 clear
+sleep 2
+
+# installing new UI
+echo "Please Wait..."
+sleep 2
+echo "Downloading Files Update..."
+sleep 1
+wget -q https://raw.githubusercontent.com/xhidrolix/updatescv2/main/menu
+sleep 1
+wget -q https://raw.githubusercontent.com/xhidrolix/updatescv2/main/menu-set
+sleep 1
+wget -q https://raw.githubusercontent.com/xhidrolix/updatescv2/main/menu-xray
+sleep 2
+clear
+echo "Downloading Files Update Succesfuly..."
+sleep 2
+echo "Process Removing Old Files..."
+rm -rf /usr/bin/menu
+sleep 1
+rm -rf /usr/bin/menu-set
+sleep 1
+rm -rf /usr/bin/menu-xray
+sleep 3
+echo "Process Removing Old Files Done..."
+sleep 2
+clear
+sleep 2
+echo "Process Moving New Files To Directory..."
+sleep 2
+mv /root/menu /usr/bin/
+sleep 1
+mv /root/menu-set /usr/bin/
+sleep 1
+mv /root/menu-xray /usr/bin/
+sleep 2
+echo "Process Moving New FIles Done..."
+sleep 4
+clear
+sleep 1
+echo "Process Setting Up Permission..."
+sleep 3
+chmod +x /usr/bin/menu
+sleep 1
+chmod +x /usr/bin/menu-set
+sleep 1
+chmod +x /usr/bin/menu-xray
+sleep 2
+echo "Process Setting Up Permission Done..."
+sleep 2
+clear
+echo "Silakan Ketik Menu Untuk Melihat Update an Terbaru"
+sleep 2
