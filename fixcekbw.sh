@@ -28,5 +28,5 @@ echo "Installing Update Complete..."
 sleep 2
 echo "Thank you Has Been Use Script By VnzVPN"
 sleep 3
-rm -rf fixcekbw.sh
+rm -rf /root/fixcekbw.sh
 clear
