@@ -1,0 +1,141 @@
+#!/bin/bash
+# [ Warna ]
+red='\e[1;31m'
+green='\e[0;32m'
+cyan='\e[0;36m'
+white='\e[037;1m'
+grey='\e[1;36m'
+NC='\e[0m'
+
+MYIP=$(curl -s ifconfig.me)
+clear
+#IZIN=$( curl https://raw.githubusercontent.com/xhidrolix/izin/main/vnzip | grep $MYIP )
+IZIN=$(curl -s https://raw.githubusercontent.com/xhidrolix/izin/main/vnzip | grep "$MYIP" | awk '{ print $4 }')
+if [ $MYIP = $IZIN ]; then
+echo -e "${green}Permission Accepted...${NC}"
+else
+clear
+#echo -e "${red}Permission Denied!${NC}";
+echo -e "\e[33m ==================================================\033[0m" | lolcat
+echo -e "                 • Vnz VPN •                 "
+echo -e "\e[33m ==================================================\033[0m" | lolcat
+echo -e ""
+echo -e "${cyan} IP VPS${NC} : $MYIP"
+echo -e ""
+echo -e "${cyan} Ssh${NC}    : STOPPED "
+echo -e "${cyan} Trojan${NC} : STOPPED "
+echo -e "${cyan} Vless${NC}  : STOPPED "
+echo -e "${cyan} Vmess${NC}  : STOPPED "
+echo -e ""
+echo -e "${red} VPS Anda Tidak Izinkan ${NC} "
+echo -e "${red} Contact Admin Untuk Perizinan ${NC}"
+echo -e ""
+echo -e "${cyan} Telegram${NC} : https://t.me/VnzVM"
+echo -e "\e[33m ==================================================\033[0m" | lolcat
+exit 1
+fi
+clear
+
+# [ Detail System ]
+domain=$(cat /etc/xray/domain)
+MYIP=$(curl ifconfig.me)
+cname=$( awk -F: '/model name/ {name=$2} END {print name}' /proc/cpuinfo )
+cores=$( awk -F: '/model name/ {core++} END {print core}' /proc/cpuinfo )
+freq=$( awk -F: ' /cpu MHz/ {freq=$2} END {print freq}' /proc/cpuinfo )
+tram=$( free -m | awk 'NR==2 {print $2}' )
+swap=$( free -m | awk 'NR==4 {print $2}' )
+up=$(uptime|awk '{ $1=$2=$(NF-6)=$(NF-5)=$(NF-4)=$(NF-3)=$(NF-2)=$(NF-1)=$NF=""; print }')
+OS5=$(uname -o )
+OS1=$(lsb_release -sd)
+f1=$(lsb_release -sc)
+frem=$(free -h | grep "Mem:" | awk '{print $2 "/" $3 "/" $4}')
+freswp=$(free -h | grep "Swap:" | awk '{print $2 "/" $3 "/" $4}')
+cpu=$(top -bn1 | grep "Cpu(s)" | awk '{print $2 "% user, " $4 "% system, " $6 "% idle"}')
+
+# [ Penggunaan Badwidth ]
+dtoday="$(vnstat -i eth0 | grep "today" | awk '{print $2" "substr ($3, 1, 1)}')"
+utoday="$(vnstat -i eth0 | grep "today" | awk '{print $5" "substr ($6, 1, 1)}')"
+ttoday="$(vnstat -i eth0 | grep "today" | awk '{print $8" "substr ($9, 1, 1)}')"
+dyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $2" "substr ($3, 1, 1)}')"
+uyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $5" "substr ($6, 1, 1)}')"
+tyest="$(vnstat -i eth0 | grep "yesterday" | awk '{print $8" "substr ($9, 1, 1)}')"
+dmon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $3" "substr ($4, 1, 1)}')"
+umon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $6" "substr ($7, 1, 1)}')"
+tmon="$(vnstat -i eth0 -m | grep "`date +"%b '%y"`" | awk '{print $9" "substr ($10, 1, 1)}')"
+
+izin() {
+clear
+
+clear
+}
+
+tampilan() {
+clear
+run_garis() {
+echo -e "${cyan}============================================================${NC}" | lolcat
+}
+clear
+run_garis
+echo -e "\E[44;1;97m          ◄ AutoScript VnzVPN Version 2.0 Beta ►            \E[0m"
+run_garis
+echo -e "\e[037;1m Operating System:${green} $OS5 / $OS1 ${white}[${green} $f1 ${white}]"
+echo -e "\e[037;1m CPU Model:${green} $cname"
+echo -e "\e[037;1m Number Of Cores:${green} $cores"
+echo -e "\e[037;1m CPU Frequency:${green} $freq MHz"
+echo -e "\e[037;1m Total Amount Of RAM:${green} $tram MB"
+echo -e "\e[037;1m System Uptime:${green} $up"
+echo -e "\e[037;1m Domain:${green} $domain ${white}/${green} $MYIP"
+echo -e "\e[037;1m CPU Usage:${green} $cpu${NC}"
+echo -e "\e[037;1m Ram VPS Total:${green} $frem${NC}"
+echo -e "\e[037;1m Swap Ram VPS Total:${green} $freswp${NC}"
+run_garis
+echo -e "${BICyan}$NC ${BICyan}HARI INI${NC}: ${red}$ttoday$NC ${BICyan}KEMARIN${NC}: ${red}$tyest$NC ${BICyan}BULAN${NC}: ${red}$tmon$NC $NC"
+run_garis
+echo -e "\E[44;1;97m                  ✮ VPN PANEL MENU ✮                        \E[0m"
+echo -e ""
+
+echo -e "${white} [ 1 ] •${white} MENU SSH" "          ${white} [ 4 ] •${white} MENU NOOBZVPN'S"
+echo -e "${white} [ 2 ] •${white} MENU X-RAY" "        ${white} [ 5 ] •${white} MENU BACKUP DATA"
+echo -e "${white} [ 3 ] •${white} MENU HYSTERIA" "     ${white} [ 6 ] •${white} MENU SYSTEM"
+echo -e ""
+echo -e "\E[44;1;37m                 ✮ Modded By VnzVPN ✮                       \E[0m"
+run_garis
+echo -e "${white}    •••••• Press CTRL + C or X To Exit This Menu ••••• "
+run_garis
+echo ""
+read -p  " SELECT OPTION FROM 1-0 : " menu
+echo -e "\e[0m"
+ case $menu in
+   01|1)
+   menu-ssh
+   ;;
+   02|2)
+   menu-xray
+   ;;
+   03|3)
+   hmenu
+   ;;
+   04|4)
+   nmenu
+   ;;
+   05|5)
+   bmenu
+   ;;
+   06|6)
+   menu-set
+   ;;
+   x|X)
+   exit
+   ;;
+   *)
+   menu
+   ;;
+esac
+}
+
+menu() {
+izin
+tampilan
+}
+
+menu
