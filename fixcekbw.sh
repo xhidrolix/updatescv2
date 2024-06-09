@@ -1,5 +1,3 @@
-#!/bin/bash
-
 clear
 sleep 1
 echo "Please Wait..."
