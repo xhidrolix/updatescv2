@@ -1,0 +1,1028 @@
+#!/bin/bash
+echo -n > /var/log/xray/access.log
+# // color
+NC='\033[0m'
+RB='\e[31;1m'
+GB='\e[32;1m'
+clear
+
+menu2() {
+
+addv() {
+clear
+domain=$(cat /etc/xray/domain)
+until [[ $user =~ ^[a-za-z0-9_]+$ && ${client_exists} == '0' ]]; do
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\\e[0;41;36m       add v2ray/vmess account      \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+read -p "Username         : " user
+read -p "Quota (GB)       : " quota
+read -p "Max Ip login     : " iplimit
+read -p "Masaaktif        : " masaaktif
+client_exists=$(grep -w $user /etc/xray/config.json | wc -l)
+if [[ ${client_exists} == '1' ]]; then
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\\e[0;41;36m      add v2ray/vmess account       \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+echo ""
+echo "a client with the specified name was already created, please choose another name."
+echo ""
+echo -e "\033[0;34m===================================\033[0m"
+read -n 1 -s -r -p "press any key to back on menu"
+menu
+fi
+done
+#QUOTA
+if [[ $quota -gt 0 ]]; then
+echo -e "$[$quota * 1024 * 1024 * 1024]" > /etc/funny/limit/xray/quota/$user
+else
+echo > /dev/null
+fi
+
+#IPLIMIT
+if [[ $iplimit -gt 0 ]]; then
+echo -e "$iplimit" > /etc/funny/limit/xray/ip/$user
+else
+echo > /dev/null
+fi
+clear
+uuid=$(cat /proc/sys/kernel/random/uuid)
+exp=`date -d "$masaaktif days" +"%y-%m-%d"`
+sed -i '/#vmess$/a\### '"$user $exp"'\
+},{"id": "'""$uuid""'","alterid": '"0"',"email": "'""$user""'"' /etc/xray/config.json
+sed -i '/#vmess$/a\### '"$user $exp"'\
+},{"id": "'""$uuid""'","alterid": '"0"',"email": "'""$user""'"' /etc/xray/vmess.json
+acs=`cat<<eof
+{
+"v": "2",
+"ps": "${user}",
+"add": "${domain}",
+"port": "443",
+"id": "${uuid}",
+"aid": "0",
+"net": "ws",
+"path": "/vmessws",
+"type": "none",
+"host": "${domain}",
+"tls": "tls"
+}
+eof`
+ask=`cat<<eof
+{
+"v": "2",
+"ps": "${user}",
+"add": "${domain}",
+"port": "80",
+"id": "${uuid}",
+"aid": "0",
+"net": "ws",
+"path": "/worryfree",
+"type": "none",
+"host": "${domain}",
+"tls": "none"
+}
+eof`
+grpc=`cat<<eof
+{
+"v": "2",
+"ps": "${user}",
+"add": "${domain}",
+"port": "443",
+"id": "${uuid}",
+"aid": "0",
+"net": "grpc",
+"path": "vmess-grpc",
+"type": "none",
+"host": "${domain}",
+"tls": "tls"
+}
+eof`
+hts=`cat<<eof
+{
+"v": "2",
+"ps": "${user}",
+"add": "${domain}",
+"port": "80",
+"id": "${uuid}",
+"aid": "0",
+"net": "httpupgrade",
+"path": "/love-dinda",
+"type": "httpupgrade",
+"host": "${domain}",
+"tls": "none"
+}
+eof`
+cs=`cat<<eof
+{
+"v": "2",
+"ps": "${user}",
+"add": "${domain}",
+"port": "443",
+"id": "${uuid}",
+"aid": "0",
+"net": "httpupgrade",
+"path": "/love-dinda",
+"type": "httpupgrade",
+"host": "${domain}",
+"tls": "tls"
+}
+eof`
+vmess_base641=$( base64 -w 0 <<< $vmess_json1)
+vmess_base642=$( base64 -w 0 <<< $vmess_json2)
+vmess_base643=$( base64 -w 0 <<< $vmess_json3)
+vmesslink1="vmess://$(echo $acs | base64 -w 0)"
+vmesslink2="vmess://$(echo $ask | base64 -w 0)"
+vmesslink3="vmess://$(echo $grpc | base64 -w 0)"
+vmesslink4="vmess://$(echo $hts | base64 -w 0)"
+vmesslink5="vmess://$(echo $cs | base64 -w 0)"
+systemctl daemon-reload ; systemctl restart xray v2ray > /dev/null 2>&1
+service cron restart > /dev/null 2>&1
+clear
+TEKS="
+================================
+[<=   v2ray vmess acount   =>]
+================================
+hostname     : $domain
+wildcard     : bug.com.${domain}
+username     : $user
+expired      : $exp
+================================
+    acount information
+================================
+network      : websocket, http upgrade
+id / uuid    : $uuid
+path ws      : /vmessws, /love [ /worryfree /kuota-habis ]
+service name : vmess-grpc
+dynamic path : https://bug.com/path
+limit        : ${quota} GB | ${iplimit} Device
+port         : 53, 443, 2095 | 80, 2082
+================================
+link tls          : ${vmesslink1}
+================================
+link nontls       : ${vmesslink2}
+================================
+link http tls     : ${vmesslink5}
+================================
+link http ntls    : ${vmesslink4}
+================================
+link grpc         : ${vmesslink3}
+================================"
+telegram-send --pre "$TEKS"
+clear
+echo -e " $TEKS "
+}
+
+addl() {
+clear
+domain=$(cat /etc/xray/domain)
+until [[ $user =~ ^[a-za-z0-9_]+$ && ${client_exists} == '0' ]]; do
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\\e[0;41;36m      add v2ray/vless account      \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+read -p "Username         : " user
+read -p "Quota (GB)       : " quota
+read -p "Max Ip login     : " iplimit
+read -p "Masaaktif        : " masaaktif
+client_exists=$(grep -w $user /etc/xray/config.json | wc -l)
+if [[ ${client_exists} == '1' ]]; then
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\\e[0;41;36m      add v2ray/vless account      \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+echo ""
+echo "a client with the specified name was already created, please choose another name."
+echo ""
+read -n 1 -s -r -p "press any key to back on menu"
+menu
+fi
+done
+#QUOTA
+if [[ $quota -gt 0 ]]; then
+echo -e "$[$quota * 1024 * 1024 * 1024]" > /etc/funny/limit/xray/quota/$user
+else
+echo > /dev/null
+fi
+
+#IPLIMIT
+if [[ $iplimit -gt 0 ]]; then
+echo -e "$iplimit" > /etc/funny/limit/xray/ip/$user
+else
+echo > /dev/null
+fi
+clear
+uuid=$(cat /proc/sys/kernel/random/uuid)
+exp=`date -d "$masaaktif days" +"%y-%m-%d"`
+sed -i '/#vless$/a\### '"$user $exp"'\
+},{"id": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
+vlesslink1="vless://${uuid}@${domain}:443?path=/vlessws&security=tls&encryption=none&type=ws#${user}"
+vlesslink2="vless://${uuid}@${domain}:80?path=/vlessws&encryption=none&type=ws#${user}"
+vlesslink3="vless://${uuid}@${domain}:443?mode=gun&security=tls&encryption=none&type=grpc&servicename=vless-grpc&sni=${domain}#${user}"
+vlesslink4="vless://${uuid}@${domain}:443?path=/rere&security=tls&encryption=none&host=${domain}&type=httpupgrade&sni=${domain}#${user}"
+vlesslink5="vless://${uuid}@${domain}:80?path=/rere&security=none&encryption=none&host=${domain}&type=httpupgrade#${user}"
+systemctl daemon-reload ; systemctl restart xray v2ray > /dev/null 2>&1
+clear
+TEKS2="
+================================
+[<=   v2ray vless acount   =>]
+================================
+hostname     : $domain
+wildcard     : bug.com.${domain}
+username     : $user
+expired      : $exp
+================================
+     acount information
+================================
+network      : ws, httpupgrade
+id / uuid    : $uuid
+path ws      : /vlessws, /rere
+dynamic path : https://bug.com/path
+service name : vless-grpc
+limit        : ${quota} GB | ${iplimit} Device
+port         : 53, 443, 2059 | 80, 2082
+================================
+link tls        : ${vlesslink1}
+================================
+link nontls     : ${vlesslink2}
+================================
+httpupgrade tls ; ${vlesslink4}
+================================
+httpupgrade ntls: ${vlesslink5}
+================================
+link grpc       : ${vlesslink3}
+================================"
+telegram-send --pre "$TEKS2"
+clear
+echo -e " $TEKS2 "
+}
+
+addt() {
+clear
+domain=$(cat /etc/xray/domain)
+until [[ $user =~ ^[a-za-z0-9_]+$ && ${user_exists} == '0' ]]; do
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\e[0;41;36m           trojan account          \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+read -p "Username         : " user
+read -p "Quota (GB)       : " quota
+read -p "Max Ip login     : " iplimit
+read -p "Masaaktif        : " masaaktif
+user_exists=$(grep -w $user /etc/xray/config.json | wc -l)
+if [[ ${user_exists} == '1' ]]; then
+clear
+echo -e "\033[0;34m===================================\033[0m"
+echo -e "\e[0;41;36m           trojan account          \e[0m"
+echo -e "\033[0;34m===================================\033[0m"
+echo ""
+echo "a client with the specified name was already created, please choose another name."
+echo ""
+echo -e "\033[0;34m===================================\033[0m"
+read -n 1 -s -r -p "press any key to back on menu"
+menu
+fi
+done
+#QUOTA
+if [[ $quota -gt 0 ]]; then
+echo -e "$[$quota * 1024 * 1024 * 1024]" > /etc/funny/limit/xray/quota/$user
+else
+echo > /dev/null
+fi
+
+#IPLIMIT
+if [[ $iplimit -gt 0 ]]; then
+echo -e "$iplimit" > /etc/funny/limit/xray/ip/$user
+else
+echo > /dev/null
+fi
+clear
+uuid=$(cat /proc/sys/kernel/random/uuid)
+exp=`date -d "$masaaktif days" +"%y-%m-%d"`
+sed -i '/#trojan$/a\### '"$user $exp"'\
+},{"password": "'""$uuid""'","email": "'""$user""'"' /etc/xray/config.json
+trojanlink1="trojan://${uuid}@${domain}:443?mode=gun&security=tls&type=grpc&servicename=trojan-grpc&sni=${domain}#${user}"
+trojanlink="trojan://${uuid}@${domain}:443?path=%2ftrojanws&security=tls&host=${domain}&type=ws&sni=${domain}#${user}"
+trojanlink9="trojan://${uuid}@${domain}:443?path=/dinda&security=tls&host=${domain}&type=httpupgrade&sni=${domain}#${user}"
+systemctl daemon-reload ; systemctl restart xray v2ray > /dev/null 2>&1
+clear
+TEKS3="
+================================
+[<=      trojan acount       =>]
+================================
+hostname    : ${domain}
+wildcard    : bug.com.${domain}
+username    : ${user}
+expired     : ${exp}
+================================
+    acount information
+================================
+uuid/key     : $uuid
+path         : /trojanws, /dinda
+dynamic path : https://bug.com/path
+service name : trojan-grpc
+limit        : ${quota} GB | ${iplimit} Device
+Port         : 53, 443, 2095 | 80, 2082
+================================
+ws/go        : $trojanlink
+================================
+lhttp upgrade: $trojanlink9
+================================
+trojan grpc  : $trojanlink1
+================================"
+telegram-send --pre "$TEKS3"
+clear
+echo -e " $TEKS3 "
+}
+
+delx() {
+clear
+number_of_clients=$(grep -c -e "^### " "/etc/xray/config.json")
+if [[ ${number_of_clients} == '0' ]]; then
+clear
+echo -e "
+====================================================
+delete v2ray account
+====================================================
+you have no existing clients!
+===================================================="
+fi
+clear
+echo -e "
+====================================================
+delete v2ray account
+====================================================
+user  expired
+===================================================="
+grep -e "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | column -t | sort | uniq
+echo "
+===================================================="
+read -rp "input username : " user
+if [ -z $user ]; then
+menu
+else
+exp=$(grep -we "^### $user" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+sed -i "/^### $user $exp/,/^},{/d" /etc/xray/config.json
+sed -i "/^### $user $exp/,/^},{/d" /etc/xray/vmess.json
+systemctl daemon-reload ; systemctl restart xray v2ray > /dev/null 2>&1
+clear
+TEKSD="
+====================================================
+succses delete v2ray  account
+====================================================
+client name : $user
+expired on  : $exp
+====================================================
+"
+clear
+telegram-send --pre "$TEKSD"
+clear
+echo -e " $TEKSD "
+fi
+}
+
+ren() {
+clear
+number_of_clients=$(grep -c -e "^### " "/etc/xray/config.json")
+if [[ ${number_of_clients} == '0' ]]; then
+clear
+echo -e "
+====================================================
+extend v2ray account
+====================================================
+you have no existing clients!
+====================================================
+"
+read -n 1 -s -r -p "press any key to back on menu"
+menu
+fi
+clear
+echo -e "
+====================================================
+extend v2ray account
+====================================================
+user  expired
+===================================================="
+grep -e "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | column -t | sort | uniq
+echo ""
+echo -e "tap enter to go back
+===================================================="
+read -rp "input username : " user
+if [ -z $user ]; then
+menu
+else
+read -p "expired (days): " masaaktif
+exp=$(grep -we "^### $user" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+now=$(date +%y-%m-%d)
+d1=$(date -d "$exp" +%s)
+d2=$(date -d "$now" +%s)
+exp2=$(( (d1 - d2) / 86400 ))
+exp3=$(($exp2 + $masaaktif))
+exp4=`date -d "$exp3 days" +"%y-%m-%d"`
+sed -i "/### $user/c\### $user $exp4" /etc/xray/config.json
+sed -i "/### $user/c\### $user $exp4" /etc/xray/vmess.json
+systemctl daemon-reload ; systemctl restart xray v2ray > /dev/null 2>&1
+clear
+TEKSR="
+====================================================
+v2ray account success extended
+====================================================
+client name : $user
+extend ?    : $masaaktif
+expired on  : $exp4
+====================================================
+"
+telegram-send --pre "$TEKSR"
+clear
+echo -e " $TEKSR "
+fi
+}
+
+cekx() {
+df='\e[39m'
+bold='\e[1m'
+blink='\e[5m'
+yell='\e[33m'
+red='\e[31m'
+green='\e[32m'
+blue='\e[34m'
+purple='\e[35m'
+cyan='\e[36m'
+lred='\e[91m'
+lgreen='\e[92m'
+lyellow='\e[93m'
+nc='\e[0m'
+green='\033[0;32m'
+orange='\033[0;33m'
+light='\033[0;37m'
+grenbo="\e[92;1m"
+clear
+function con() {
+local -i bytes=$1;
+if [[ $bytes -lt 1024 ]]; then
+echo "${bytes}b"
+elif [[ $bytes -lt 1048576 ]]; then
+echo "$(( (bytes + 1023)/1024 ))kb"
+elif [[ $bytes -lt 1073741824 ]]; then
+echo "$(( (bytes + 1048575)/1048576 ))mb"
+else
+echo "$(( (bytes + 1073741823)/1073741824 ))gb"
+fi
+}
+echo -n > /tmp/other.txt
+data=( `cat /etc/xray/config.json | grep '^###' | cut -d ' ' -f 2 | sort | uniq`);
+clear
+echo -e "\n Mengambil Data Log X-Ray "
+echo -e "Please Wait 5 Second"
+sleep 5.5
+clear
+echo -e "\033[1;36m==========================================\033[0m" | lolcat
+echo -e " \e[1;97;45m           cek v2ray account            \e[0m"
+echo -e "\033[1;36m==========================================\033[0m" | lolcat
+echo -e "\033[1;36m└─────────────────────────────────────────┐\033[0m"
+for akun in "${data[@]}"
+do
+if [[ -z "$akun" ]]; then
+akun="tidakada"
+fi
+echo -n > /tmp/ipvmess.txt
+data2=( `cat /var/log/xray/access.log | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | sort | uniq`);
+for ip in "${data2[@]}"
+do
+jum=$(cat /var/log/xray/access.log | grep -w "$akun" | tail -n 500 | cut -d " " -f 3 | sed 's/tcp://g' | cut -d ":" -f 1 | grep -w "$ip" | sort | uniq)
+if [[ "$jum" = "$ip" ]]; then
+echo "$jum" >> /tmp/ipvmess.txt
+else
+echo "$ip" >> /tmp/other.txt
+fi
+jum2=$(cat /tmp/ipvmess.txt)
+sed -i "/$jum2/d" /tmp/other.txt > /dev/null 2>&1
+done
+jum=$(cat /tmp/ipvmess.txt)
+if [[ -z "$jum" ]]; then
+echo > /dev/null
+else
+jum2=$(cat /tmp/ipvmess.txt | wc -l)
+lim=$(cat /etc/funny/limit/xray/ip/$akun)
+lastlogin=$(cat /var/log/xray/access.log | grep -w "$akun" | tail -n 500 | cut -d " " -f 2 | tail -1)
+log1=$(cat /var/log/xray/access.log | grep -w "$akun" | tail -n 500 | cut -d " " -f 5 | tail -1)
+printf "  %-13s %-7s %-8s %2s\n" "username   : ${akun}"
+printf "  %-13s %-7s %-8s %2s\n" "jumlah ip  : $jum2 / $lim "
+printf "  %-13s %-7s %-8s %2s\n" "last login : $lastlogin"
+printf "  %-13s %-7s %-8s %2s\n" "Akses Web  : $log1";
+echo -e "\033[1;36m┌─────────────────────────────────────────┘\033[0m"
+fi
+rm -rf /tmp/ipvmess.txt
+done
+rm -rf /tmp/other.txt
+echo -e "\033[1;36m==========================================\033[0m" | lolcat
+echo -e "\e[1;97;101m         done cek v2ray account           \e[0m"
+echo -e "\033[1;36m==========================================\033[0m" | lolcat
+}
+
+mx() {
+touch /root/.system
+clear
+echo -e "\033[1;36m┌─────────────────────────────────────────┐\033[0m" | lolcat
+echo -e "        =[ member v2ray account ]=         "
+echo -e "\033[1;36m└─────────────────────────────────────────┐\033[0m" | lolcat
+echo -n > /root/.accsess.log
+data=( $(cat /etc/xray/config.json | grep '###' | cut -d ' ' -f 2 | sort | uniq) )
+for user in "${data[@]}"
+do
+echo > /dev/null
+jum=$(cat /etc/xray/config.json | grep -c '###' | awk '{print $1/2}' | bc)
+if (( $(echo "$jum > 0" | bc -l) )); then
+exp=$(grep -wE "^### $user" "/etc/xray/config.json" | cut -d ' ' -f 3 | sort | uniq)
+echo -e "  \e[33;1mUser\e[32;1m  : $user"
+echo -e "  \e[33;1mExp\e[32;1m   : $exp"
+echo -e "\033[1;36m┌─────────────────────────────────────────┘\033[0m" | lolcat
+echo "slot" >> /root/.system
+else
+echo > /dev/null
+fi
+sleep 0.1
+done
+aktif=$(cat /root/.system | wc -l)
+echo -e "\033[1;36m┌─────────────────────────────────────────┐\033[0m" | lolcat
+echo -e "   $aktif Member Active"
+echo -e "\033[1;36m└─────────────────────────────────────────┘\033[0m" | lolcat
+sed -i "d" /root/.system
+}
+chip() {
+yellow="\033[0;33m"
+ungu="\033[0;35m"
+Red="\033[91;1m"
+Cyan="\033[96;1m"
+Xark="\033[0m"
+BlueCyan="\033[5;36m"
+WhiteBe="\033[5;37m"
+GreenBe="\033[5;32m"
+YellowBe="\033[5;33m"
+BlueBe="\033[5;34m"
+# . Liner 
+function baris_panjang() {
+  echo -e "${BlueCyan} ——————————————————————————————————— ${Xark} "
+}
+
+function Rerechan02_Baner() {
+clear
+baris_panjang
+echo -e "${ungu}           VNZ VPN      ${Xark} "
+baris_panjang
+}
+
+function Dev_script(){
+sleep 1
+baris_panjang
+echo -e "${ungu}  Terimakasih Telah Menggunakan ${Xark}"
+echo -e "${ungu}         Script Credit ${Xark}"
+echo -e "${ungu}    Vnz VPN AUTOSCRIPT AIO ${Xark}"
+baris_panjang
+exit 1
+}
+
+duration=6
+frames=("██10%" "█████35%" "█████████65%" "█████████████80%" "█████████████████████90%" "█████████████████████████100%")
+
+# Menghitung jumlah frame
+num_frames=${#frames[@]}
+
+# Menghitung jumlah iterasi
+num_iterations=$((duration))
+
+# Fungsi untuk menampilkan animasi loading berwarna
+
+Loading_Animasi() {
+    for ((i = 0; i < num_iterations; i++)); do
+        clear
+        index=$((i % num_frames))
+        color_code=$((31 + i % 7))
+echo ""
+echo ""
+echo ""
+echo -e "\e[1;${color_code}m ${frames[$index]}\e[0m"
+sleep 0.5
+    done
+}
+
+# Menampilkan pesan Sukses setelah animasi selesai
+function Loading_Succes() {
+clear
+echo -e  "\033[5;32mSucces\033[0m"
+sleep 1
+clear
+}
+
+function Daftar_Account_Vmess() {
+grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | column -t | sort | uniq
+}
+
+Rerechan02_Baner
+baris_panjang
+Daftar_Account_Vmess
+baris_panjang
+echo ""
+echo ""
+read -p "Input Username   :  " user
+limit_file="/etc/funny/limit/xray/ip/${user}"
+
+# Validasi apakah file batasan IP sudah ada
+if [ -e "$limit_file" ]; then
+  current_iplimit=$(cat "$limit_file")
+  
+baris_panjang
+clear
+echo -e "${Cyan} BEFORE IP LIMIT ${Xark} "
+echo ""
+echo -e "${GreenBe} Username : $user ${Xark} "
+echo -e "${GreenBe} Limit Ip : $current_iplimit"
+echo ""
+baris_panjang
+echo ""
+echo "" 
+read -p " Input New Ip  :" new_iplimit
+baris_panjang
+
+Loading_Animasi
+Loading_Succes
+
+  # Validasi jika masukan kosong
+  if [ -z "$new_iplimit" ]; then
+    echo -e "$Red Input Invallid ${Xark}"
+  else
+    echo "$new_iplimit" > "$limit_file"
+
+Rerechan02_Baner
+baris_panjang
+echo -e "${GreenBe} Succesfully ${Xark} "
+echo ""
+echo -e "${yellow} New Limit :  $new_iplimit ${Xark} "
+echo -e "${yellow} Username  : $user ${Xark} "
+echo ""
+baris_panjang
+Dev_script
+
+  fi
+else
+Loading_Animasi
+clear
+
+Rerechan02_Baner
+baris_panjang
+echo ""
+echo -e "${Red} Sorry ${Xark} "
+echo -e "${Cyan} "
+echo " File Limit Ip Untuk Nama $user "
+echo " Tidak Di Temukan "
+echo " Mohon Untuk segera Settings "
+echo " Terlebih Dahulu Di Menu - "
+echo " Change Limit Xray "
+echo -e "${Xark} "
+baris_panjang
+Dev_script
+fi
+}
+chqu() {
+yellow="\033[0;33m"
+ungu="\033[0;35m"
+Red="\033[91;1m"
+Cyan="\033[96;1m"
+Xark="\033[0m"
+BlueCyan="\033[5;36m"
+WhiteBe="\033[5;37m"
+GreenBe="\033[5;32m"
+YellowBe="\033[5;33m"
+BlueBe="\033[5;34m"
+# . Liner 
+function baris_panjang() {
+  echo -e "${BlueCyan} ——————————————————————————————————— ${Xark} "
+}
+
+function Lunatic_Banner() {
+clear
+baris_panjang
+echo -e "${ungu}             Vnz VPN      ${Xark} "
+baris_panjang
+}
+
+function Sc_Credit(){
+sleep 1
+baris_panjang
+echo -e "${ungu}    Terimakasih Telah Menggunakan ${Xark}"
+echo -e "${ungu}         Script Credit ${Xark}"
+echo -e "${ungu}    Vnz VPN Autoscript AIO     ${Xark}"
+baris_panjang
+exit 1
+}
+
+duration=6
+frames=("██10%" "█████35%" "█████████65%" "█████████████80%" "█████████████████████90%" "█████████████████████████100%")
+
+# Menghitung jumlah frame
+num_frames=${#frames[@]}
+
+# Menghitung jumlah iterasi
+num_iterations=$((duration))
+
+# Fungsi untuk menampilkan animasi loading berwarna
+
+Loading_Animasi() {
+    for ((i = 0; i < num_iterations; i++)); do
+        clear
+        index=$((i % num_frames))
+        color_code=$((31 + i % 7))
+echo ""
+echo ""
+echo ""
+echo -e "\e[1;${color_code}m ${frames[$index]}\e[0m"
+sleep 0.5
+    done
+}
+
+# Menampilkan pesan Sukses setelah animasi selesai
+function Loading_Succes() {
+clear
+echo -e  "\033[5;32mSucces\033[0m"
+sleep 1
+clear
+}
+
+function Daftar_Account() {
+grep -E "^### " "/etc/xray/config.json" | cut -d ' ' -f 2-3 | column -t | sort | uniq
+}
+
+
+function change_vmess_quota() {
+  Lunatic_Banner
+  baris_panjang
+  Daftar_Account
+  baris_panjang
+  echo ""
+  read -p " Input Username        :   " user
+  quota_file="/etc/funny/limit/xray/quota/${user}"
+
+  # Validasi apakah file kuota sudah ada
+  if [ -e "$quota_file" ]; then
+    current_quota=$(cat "$quota_file")
+    echo ""
+    echo ""
+
+    baris_panjang
+    clear
+    echo -e "${Cyan} BEFORE QUOTA ${Xark} "
+    echo -e ""  
+    echo -e "${GreenBe} Quota      : $((current_quota / 1024 / 1024 / 1024)) ${Xark} "
+    echo -e "${GreenBe} Username   : $user ${Xark} "
+    echo -e ""
+    baris_panjang
+    echo ""
+    read -p " Input New Quota (gb) : " new_quota
+
+    Loading_Animasi
+    Loading_Succes
+
+    # Validasi jika masukan kosong atau tidak valid
+    if [[ -z "$new_quota" || ! "$new_quota" =~ ^[0-9]+$ ]]; then
+      echo "Masukan tidak valid. Kuota tidak berubah."
+    else
+
+      # Konversi kuota ke byte
+      new_quota_bytes=$((new_quota * 1024 * 1024 * 1024))
+      echo "${new_quota_bytes}" > "${quota_file}"
+
+      Lunatic_Banner
+      baris_panjang
+      echo -e "${GreenBe} Succesfully ${Xark} "
+      echo ""
+      echo -e "${Cyan} AFTER ${Xark} "
+      echo ""
+      echo -e "${yellow} New Quota   : $new_quota GB ${Xark} "
+      echo -e "${yellow} Username    : $user ${Xark}"
+      echo ""
+      baris_panjang
+      Sc_Credit
+
+    fi
+  else
+
+    Lunatic_Banner
+    baris_panjang
+    echo ""
+    echo -e "${Red} File kuota is Wrong Username :  $user ${Xark} "
+    echo ""
+    baris_panjang
+    Sc_Credit
+
+  fi
+}
+
+change_vmess_quota
+}
+
+swarp() {
+
+enw() {
+rm -fr /etc/xray/config.json
+cat /etc/xray/config.json.warp > /etc/xray/config.json
+systemctl daemon-reload ; systemctl restart xray
+clear
+echo " Warp Success Enable "
+}
+
+disw() {
+rm -fr /etc/xray/config.json
+cat /etc/xray/config.json.bak > /etc/xray/config.json
+systemctl daemon-reload ; systemctl restart xray
+clear
+echo " Warp Success Disable "
+}
+
+wgf=$(cat /etc/xray/config.json | grep -o '"protocol": "wireguard",' | awk -F': "' '{print $2}' | sed 's/",$//')
+#cat /storage/emulated/0/fn/json/config.json | grep -o '"protocol": "wireguard",' | awk -F': "' '{print $2}' | sed 's/",$//'
+if [[ $wgf == "wireguard" ]]; then
+  swp="${GB}[ ON ]${NC}"
+else
+  swp="${RB}[ OFF ]${NC}"
+fi
+clear
+echo -e "
+==============================
+Change X-Ray Configuraton Warp
+==============================
+Status Warp: $swp
+
+1. Enable Warp
+2. Disable Warp
+==============================
+ Press CTRL + C to exit Menu
+"
+read -p "Input Option: " ap
+case $ap in
+01|1) clear ; enw ;;
+02|2) clear ; disw ;;
+*) clear ; echo "Invalid Number" ; sleep 5 ; swarp ;;
+x|X) exit ;;
+esac
+}
+
+uix() {
+clear
+echo -e "══════════════════════════" | lolcat
+echo -e " <= UUID X-RAY ACCOUNT =>"
+echo -e "══════════════════════════" | lolcat
+grep -oP '(?<=id": ")[^"]+' /etc/xray/*.json | sort -u
+echo -e "══════════════════════════" | lolcat
+read -p "Input Old UUID Account: " user
+read -p "Input New UUID Account: " uuid
+sed -i "s|\"id\": \"$user\"|\"id\": \"$uuid\"|" /etc/xray/*.json
+clear
+echo -e "══════════════════════════" | lolcat
+echo -e " <= SUCCES CHANGE UUID =>"
+echo -e "══════════════════════════" | lolcat
+echo -e "OLD UUID ACCOUNT: $user "
+echo -e "NEW UUID ACCOUNT: $uuid "
+echo -e "══════════════════════════" | lolcat
+}
+
+uit() {
+clear
+echo -e "═════════════════════════════" | lolcat
+echo -e "<= PASSWORD TROJAN ACCOUNT =>"
+echo -e "═════════════════════════════" | lolcat
+grep -oP '(?<=password": ")[^"]+' /etc/xray/*.json | sort -u
+echo -e "══════════════════════════" | lolcat
+read -p "Input Old Password Account: " user
+read -p "Input New Password Account: " uuid
+sed -i "s|\"id\": \"$user\"|\"id\": \"$uuid\"|" /etc/xray/*.json
+clear
+echo -e "═════════════════════════════" | lolcat
+echo -e "<= SUCCES CHANGE PASSWORD  => "
+echo -e "═════════════════════════════" | lolcat
+echo -e "OLD Password ACCOUNT: $user "
+echo -e "NEW Password ACCOUNT: $uuid "
+echo -e "═════════════════════════════" | lolcat
+}
+
+xbw() {
+_APISERVER=127.0.0.1:10085
+_XRAY=xray
+#
+apidata () {
+    local ARGS=
+    if [[ $1 == "reset" ]]; then
+      ARGS="-reset=true"
+    fi
+    $_XRAY api statsquery --server=$_APISERVER "${ARGS}" \
+    | awk '{
+        if (match($1, /"name":/)) {
+            f=1; gsub(/^"|link"|,$/, "", $2);
+            split($2, p,  ">>>");
+            printf "%s:%s\t", p[1],p[2],p[4];
+        }
+        else if (match($1, /"value":/) && f){
+          f = 0;
+          gsub(/"/, "", $2);
+          printf "%.0f\n", $2;
+        }
+        else if (match($0, /}/) && f) { f = 0; print 0; }
+    }'
+}
+#
+print_sum() {
+    local DATA="$1"
+    local PREFIX="$2"
+    local SORTED=$(echo "$DATA" | grep "^${PREFIX}" | sort -r)
+    local SUM=$(echo "$SORTED" | awk '
+        /->up/{us+=$2}
+        /->down/{ds+=$2}
+        END{
+            printf "SUM->up:\t%.0f\nSUM->down:\t%.0f\nSUM->TOTAL:\t%.0f\n", us, ds, us+ds;
+        }')
+    echo -e "${SORTED}\n${SUM}" \
+    | numfmt --field=2 --suffix=B --to=iec \
+    | column -t
+}
+DATA=$(apidata $1)
+print_sam=$(print_sum)
+DF='\e[39m'
+Bold='\e[1m'
+Blink='\e[5m'
+yell='\e[33m'
+red='\e[31m'
+green='\e[32m'
+blue='\e[34m'
+PURPLE='\e[35m'
+cyan='\e[36m'
+Lred='\e[91m'
+Lgreen='\e[92m'
+Lyellow='\e[93m'
+NC='\e[0m'
+GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
+LIGHT='\033[0;37m'
+grenbo="\e[92;1m"
+clear
+print_sum "$DATA" "user" > /root/.file
+clear
+echo -e "\033[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo -e " \e[1;97;101m         CEK USER QUOTA ACCOUNT         \e[0m"
+echo -e "\033[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+#grep -Eo '[A-Za-z0-9]+[ ]+[0-9.]+[MG]B' /root/.file
+cat /root/.file
+rm -fr /root/.file
+echo -e "\033[1;36m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m"
+echo ""
+}
+
+clear
+echo -e "\e[0m======================================="
+echo -e "\E[41;1;37m          V2RAY MENU SERVICE           \E[0m"
+echo -e "======================================="
+echo -e "\E[44;1;97m              ✮ CREATE ✮               \E[0m"
+echo -e ""
+echo -e "01. create vmess account"
+echo -e "02. create vless account"
+echo -e "03. create trojan account"
+echo -e "04. create shadowsocks account"
+echo -e "======================================="
+echo -e "\E[44;1;97m               ✮ OTHER ✮               \E[0m"
+echo -e ""
+echo -e "05. delete v2ray account"
+echo -e "06. renew v2ray account"
+echo -e "07. check user login v2ray"
+echo -e "08. list all member v2ray"
+echo -e "09. change limit IP v2ray"
+echo -e "10. change limit quota v2ray"
+echo -e "======================================="
+echo -e "\E[44;1;97m              ✮ SERVICE ✮              \E[0m"
+echo -e ""
+echo -e "11. Check Trafict Data Usage V2ray"
+#echo -e "10. switch warp & non-warp v2ray"
+echo -e "12. Change UUID V2ray Account"
+echo -e "13. Change Password V2ray Account"
+#echo -e "13. Check Traffic Data Usage V2ray Account"
+echo -e "======================================="
+read -p " select menu :  "  opt
+case $opt in
+01|1) clear ; addv ; exit ;;
+02|2) clear ; addl ; exit ;;
+03|3) clear ; addt ; exit ;;
+04|4) clear ; addssws ; exit ;;
+05|5) clear ; delx ; exit ;;
+06|6) clear ; ren ; exit ;;
+07|7) clear ; cekx ; exit ;;
+08|8) clear ; mx ; exit ;;
+09|9) clear ; chip ; exit ;;
+10) clear ; chqu ; exit ;;
+11) clear ; xbw ; exit ;;
+#10) clear ; swarp ; exit ;;
+12) clear ; uix ; exit ;;
+13) clear ; uit ; exit ;;
+#13) clear ; xbw ; exit ;;
+X|x) exit ;;
+*) echo "anda salah tekan " ; sleep 1 ; menu2 ;;
+esac
+}
+menu2
