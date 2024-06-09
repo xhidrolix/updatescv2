@@ -1,0 +1,298 @@
+#!/bin/bash
+white='\e[037;1m'
+clear
+izin() {
+clear
+clear
+}
+
+webm() {
+# ==========================================
+clear
+Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
+Info="${Green_font_prefix}[Installed]${Font_color_suffix}"
+Error="${Red_font_prefix}[Not Installed]${Font_color_suffix}"
+cek=$(netstat -ntlp | grep 10000 | awk '{print $7}' | cut -d'/' -f2)
+function install () {
+IP=$(curl ifconfig.me);
+echo " Adding Repositori Webmin"
+sh -c 'echo "deb http://download.webmin.com/download/repository sarge contrib" > /etc/apt/sources.list.d/webmin.list'
+apt install gnupg gnupg1 gnupg2 -y
+wget http://www.webmin.com/jcameron-key.asc
+apt-key add jcameron-key.asc
+echo " Start Install Webmin"
+clear
+sleep 0.5
+apt update > /dev/null 2>&1
+apt install webmin -y
+sed -i 's/ssl=1/ssl=0/g' /etc/webmin/miniserv.conf
+/etc/init.d/webmin restart
+rm -f /root/jcameron-key.asc
+clear
+echo ""
+echo "======================="
+echo "  Done Install Webmin  "
+echo "======================="
+echo "http://$(cat /etc/xray/domain):10000"
+echo "======================="
+echo "Script By VnzVPN"
+read -n 1 -s -r -p "Press any key to back on menu"
+menu
+}
+function restart () {
+echo " Restarting Webmin"
+sleep 0.5
+service webmin restart > /dev/null 2>&1
+echo " Start Uninstall Webmin"
+clear
+echo ""
+echo "======================="
+echo "  Done Restart Webmin  "
+echo "======================="
+echo "Script By VnzVPN"
+read -n 1 -s -r -p "Press any key to back on menu"
+menu
+}
+function uninstall () {
+echo " Removing Repositori Webmin"
+rm -f /etc/apt/sources.list.d/webmin.list
+apt update > /dev/null 2>&1
+echo " Start Uninstall Webmin"
+clear
+sleep 0.5
+apt autoremove --purge webmin -y > /dev/null 2>&1
+clear
+echo ""
+echo "========================="
+echo "  Done Uninstall Webmin  "
+echo "========================="
+echo "Script By VnzVPN"
+read -n 1 -s -r -p "Press any key to back on menu"
+menu
+}
+if [[ "$cek" = "perl" ]]; then
+sts="${Info}"
+else
+sts="${Error}"
+fi
+clear
+echo -e ""
+echo -e "================================"
+echo -e "   Webmin Menu $sts        "
+echo -e "================================"
+echo -e "1.Install Webmin"
+echo -e "2.Restart Webmin"
+echo -e "3.Uninstall Webmin"
+echo -e "================================"
+read -rp "Please Enter The Correct Number : " -e num
+if [[ "$num" = "1" ]]; then
+install
+elif [[ "$num" = "2" ]]; then
+restart
+elif [[ "$num" = "3" ]]; then
+uninstall
+else
+clear
+echo " You Entered The Wrong Number"
+menu
+fi
+}
+
+dm-menu() {
+red='\e[1;31m'
+green='\e[0;32m'
+blue='\e[0;34m'
+cyan='\e[0;36m'
+cyanb='\e[46m'
+white='\e[037;1m'
+grey='\e[1;36m'
+NC='\e[0m'
+
+
+cert() {
+clear
+echo start
+clear
+domain=$(cat /etc/xray/domain)
+echo -e " Generate new Ceritificate Pleade Input Type Your VPS"
+read -p "Install certificate for IPv4 or IPv6? (4/6): " ip_version
+if [[ $ip_version == "4" ]]; then
+    systemctl stop nginx
+    mkdir /root/.acme.sh
+    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+    chmod +x /root/.acme.sh/acme.sh
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256
+    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+    systemctl start nginx
+    echo "Cert installed for IPv4."
+elif [[ $ip_version == "6" ]]; then
+    systemctl stop nginx
+    mkdir /root/.acme.sh
+    curl https://acme-install.netlify.app/acme.sh -o /root/.acme.sh/acme.sh
+    chmod +x /root/.acme.sh/acme.sh
+    /root/.acme.sh/acme.sh --upgrade --auto-upgrade
+    /root/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+    /root/.acme.sh/acme.sh --issue -d $domain --standalone -k ec-256 --listen-v6
+    ~/.acme.sh/acme.sh --installcert -d $domain --fullchainpath /etc/xray/xray.crt --keypath /etc/xray/xray.key --ecc
+    systemctl start nginx
+    echo "Cert installed for IPv6."
+else
+    echo "Invalid IP version. Please choose '4' for IPv4 or '6' for IPv6."
+fi
+}
+
+add-domain() {
+clear
+echo -e "\e[33m===================================\033[0m"
+echo -e "Domain anda saat ini:"
+echo -e "$(cat /etc/xray/domain)"
+echo ""
+read -rp "Domain/Host: " -e host
+echo ""
+if [ -z $host ]; then
+echo "DONE CHANGE DOMAIN"
+echo -e "\e[33m===================================\033[0m"
+read -n 1 -s -r -p "Press any key to back on menu"
+menu
+else
+echo "$host" > /etc/xray/domain
+echo -e "\e[33m===================================\033[0m"
+echo -e ""
+read -n 1 -s -r -p "Press any key to renew cert"
+cert
+fi
+}
+clear
+echo -e "${cyan}============================================================${NC}" | lolcat
+echo -e " \E[41;1;37m                  ◎ DOMAIN  MENU ◎                        \E[0m"
+echo -e "${cyan}============================================================${NC}" | lolcat
+echo -e  "  "
+echo -e "${white} [ 1 ] •${white} CHANGE SUBDOMAIN VPN"
+echo -e "${white} [ 2 ] •${white} RENEW CERTIFICATE DOMAIN"
+echo -e  "  "
+
+echo -e  "    ${green}PRESS [ X ] TO EXIT MENU${NC} "
+echo -e
+echo -e "${cyan}============================================================${NC}" | lolcat
+echo -e " \E[41;1;37m               ◎ Modded By VnzVPN ◎                   \E[0m"
+echo -e "${cyan}============================================================${NC}" | lolcat
+echo ""
+read -p  " PLEASE SELECT AN OPTION : " Setbackuptime
+echo -e "\e[0m"
+case $Setbackuptime in
+        1)
+        clear
+        add-domain
+        ;;
+        2)
+        clear
+        cert
+        ;;
+        x)
+    exit
+    ;;
+        *)
+        echo -e "Please enter an correct number"
+        sleep 1
+        clear
+        dm-menu
+        ;;
+        esac
+}
+
+
+reres() {
+clear
+                sleep 1
+                systemctl daemon-reload
+                systemctl stop systemd-resolved
+                /etc/init.d/ssh restart
+                /etc/init.d/dropbear restart
+                /etc/init.d/cron restart
+                /etc/init.d/nginx restart
+                systemctl start systemd-resolved
+                clear
+                echo -e "[ \033[32mInfo\033[0m ] Restart Begin"
+                sleep 1
+                echo -e "[ \033[32mok\033[0m ] Restarting xray Service (via systemctl) "
+                sleep 0.5
+                systemctl restart xray
+                systemctl restart xray.service
+                echo -e "[ \033[32mok\033[0m ] Restarting badvpn Service (via systemctl) "
+                sleep 0.5
+                systemctl restart badvpn
+                sleep 0.5
+                echo -e "[ \033[32mok\033[0m ] Restarting websocket Service (via systemctl) "
+                sleep 0.5
+                systemctl restart edu.service
+                sleep 0.5
+                echo -e "[ \033[32mInfo\033[0m ] ALL Service Restarted"
+                echo ""
+                echo -e "\e[33m===================================\033[0m"
+                echo ""
+}
+
+tampilan() {
+clear
+echo -e "${white}
+==================================
+[ <=    Menu System Server    => ]
+==================================
+
+01. Change Subdomain
+02. Change Bot Notif
+03. Restart All Service
+04. Menu Webmin CPanel Free
+05. Cek Usage CPU / Ram / Disk
+06. Speedtest Server Speed In Speedtest.net
+07. Check Usage Bandwith
+08. Reboot VPS
+==================================
+Press CTRL + C or X to exit
+==================================
+"
+read -p "Input Option: " opt
+case $opt in
+             01|1)
+                  dm-menu
+                  ;;
+             02|2)
+                  telegram-send --configure
+                  ;;
+             03|3)
+                  reres
+                  ;;
+             04|4)
+                  webm
+                  ;;
+             05|5)
+                  clear
+                  htop
+                  ;;
+             06|6)
+                  clear
+                  speedtest-cli
+                  ;;
+             07|7)
+                  clear
+                  vnstat
+             08|8)
+                  clear
+                  reboot
+             x|X)
+                 exit
+                 ;;
+             *)
+               menu-set
+               ;;
+esac
+}
+
+menu-set() {
+izin
+tampilan
+}
+
+menu-set
