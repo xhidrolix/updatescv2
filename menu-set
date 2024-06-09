@@ -278,9 +278,11 @@ case $opt in
              07|7)
                   clear
                   vnstat
+                  ;;
              08|8)
                   clear
                   reboot
+                  ;;
              x|X)
                  exit
                  ;;
